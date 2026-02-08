@@ -1,0 +1,33 @@
+{
+  "name": "yue",
+  "version": "1.0.0",
+  "module": "src/index.tsx",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.tsx",
+    "dev": "bun run --watch src/index.tsx",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/js-yaml": "^4.0.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.0.0",
+    "@ai-sdk/google": "^3.0.22",
+    "@ai-sdk/openai": "^1.0.0",
+    "@babel/core": "^7.29.0",
+    "@babel/preset-typescript": "^7.28.5",
+    "@opentui/core": "^0.1.77",
+    "@opentui/solid": "^0.1.77",
+    "ai": "^6.0.77",
+    "babel-preset-solid": "1.9.9",
+    "js-yaml": "^4.1.1",
+    "solid-js": "1.9.9",
+    "zod": "^3.23.0"
+  }
+}
