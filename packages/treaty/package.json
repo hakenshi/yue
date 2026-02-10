@@ -1,0 +1,22 @@
+{
+  "name": "treaty",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "bun build ./index.ts --outdir dist",
+    "check-types": "tsc --noEmit",
+    "lint": "bun run check-types",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@elysiajs/eden": "^1.4.2",
+    "api-contract": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -1,110 +1,135 @@
-# 🌙 Yue
+# Turborepo starter
 
-An opinionated AI coding agent with maximum transparency and user control inspired by anomaly's agent cli tool opencode.
+This Turborepo starter is maintained by the Turborepo core team.
 
-Yue is a terminal-based AI assistant that writes correct code from the start. It provides maximum transparency, strict code quality enforcement, and gives you complete control over the development process.
+## Using this example
 
-## Philosophy
+Run the following command:
 
-- **No vibe coding** - Strict quality standards enforced
-- **Maximum transparency** - See everything the AI does
-- **User control** - You decide, AI executes
-- **Efficiency** - Minimal chatter, maximum output
-
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/hakenshi/yue-agent.git
-cd yue
-
-# Install dependencies with Bun
-bun install
-
-# Run the development server
-bun run dev
-
-# Or build and run
-bun run build
-bun start
+```sh
+npx create-turbo@latest
 ```
 
-## Quick Start
+## What's inside?
 
-```bash
-# Launch Yue
-bun start
+This Turborepo includes the following packages/apps:
 
-# Initialize a new project (coming soon)
-yue init
+### Apps and Packages
 
-# Run with specific directory (coming soon)
-yue -c /path/to/project
+- `docs`: a [Next.js](https://nextjs.org/) app
+- `web`: another [Next.js](https://nextjs.org/) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+
+### Utilities
+
+This Turborepo has some additional tools already setup for you:
+
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
+
+### Build
+
+To build all apps and packages, run the following command:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build
+
+# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build
+yarn dlx turbo build
+pnpm exec turbo build
 ```
 
-## Features
+You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
 
-### Core Features
-- **Context Management** - Per-feature isolated contexts with auto-compaction
-- **Background Tasks** - Run async with full visibility and control
-- **Senior Mode** - Configurable code review (levels 1-10)
-- **Personality System** - Multiple AI personalities + custom creator
+```
+# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+turbo build --filter=docs
 
-### Quality & Protections
-- Anti-vibe coding protections (15+ rules)
-- Auto-checks (lint, type-check, tests)
-- Security scanning
-- Performance analysis
-- Token tracking with cost calculation
-
-### Integrations
-- Vercel Skills browser
-- MCP servers registry
-- Docker integration
-- CI/CD read-only integration
-- Git with checkpoint/rollback
-
-### Commands
-
-**CLI:**
-```bash
-bun start                      # Launch Yue
-bun run dev                    # Development mode
-bun test                       # Run tests
+# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+npx turbo build --filter=docs
+yarn exec turbo build --filter=docs
+pnpm exec turbo build --filter=docs
 ```
 
-**TUI (Planned):**
+### Develop
+
+To develop all apps and packages, run the following command:
+
 ```
-/feature <name>                 # Switch/create feature context
-/bg                             # List background tasks
-/diff                           # Show changes
-/skills                         # Browse skills registry
-/mcp                            # Browse MCP registry
-/docker                         # Docker integration
-/procs                          # Process manager
-```
+cd my-turborepo
 
-## Configuration
+# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev
 
-Global config: `~/.config/yue/`
-Project config: `./.yue/`
-
-## Development 🛠️
-
-```bash
-# Install dependencies
-bun install
-
-# Start development server
-bun run dev
-
-# Run tests
-bun test
-
-# Build for production
-bun run build
+# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev
+yarn exec turbo dev
+pnpm exec turbo dev
 ```
 
-## License 📄
+You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
 
-MIT License - see [LICENSE](LICENSE) file
+```
+# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+turbo dev --filter=web
+
+# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+npx turbo dev --filter=web
+yarn exec turbo dev --filter=web
+pnpm exec turbo dev --filter=web
+```
+
+### Remote Caching
+
+> [!TIP]
+> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+
+Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+
+By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+
+```
+cd my-turborepo
+
+# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+turbo login
+
+# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+npx turbo login
+yarn exec turbo login
+pnpm exec turbo login
+```
+
+This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+
+Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+
+```
+# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
+turbo link
+
+# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+npx turbo link
+yarn exec turbo link
+pnpm exec turbo link
+```
+
+## Useful Links
+
+Learn more about the power of Turborepo:
+
+- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
+- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
+- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
+- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
+- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
+- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)

@@ -1,0 +1,47 @@
+---
+import SiteLayout from "../layouts/SiteLayout.astro"
+---
+
+<SiteLayout
+  title="Yue Docs"
+  description="Documentation, marketplace, billing, and configuration for Yue."
+>
+  <section class="hero">
+    <h1>Yue</h1>
+    <p>
+      Docs, marketplace, billing, and configuration UI live here. The CLI stays local-first
+      by default.
+    </p>
+    <div class="pillrow">
+      <span class="pill">no-telemetry</span>
+      <span class="pill">local-first</span>
+      <span class="pill">bun</span>
+      <span class="pill">turborepo</span>
+      <span class="pill">elysia</span>
+      <span class="pill">eden treaty</span>
+    </div>
+  </section>
+
+  <section class="grid" aria-label="Sections">
+    <div class="card">
+      <h2>Docs</h2>
+      <p>Project overview, commands, and conventions.</p>
+      <a href="/docs">Open docs</a>
+    </div>
+    <div class="card">
+      <h2>Marketplace</h2>
+      <p>First-party extensions and curated installs (later).</p>
+      <a href="/marketplace">Browse marketplace</a>
+    </div>
+    <div class="card">
+      <h2>Billing</h2>
+      <p>Yue Nightly credits and tier gating (UI stub for now).</p>
+      <a href="/billing">Open billing</a>
+    </div>
+    <div class="card">
+      <h2>Configuration</h2>
+      <p>Keys, providers, projects mapping, and settings (UI stub for now).</p>
+      <a href="/settings">Open config</a>
+    </div>
+  </section>
+</SiteLayout>
