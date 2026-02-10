@@ -1,11 +1,17 @@
-import { For, Show } from "solid-js"
+import { For, Show, createEffect, createSignal } from "solid-js"
+import { useKeyboard } from "@opentui/solid"
+import type { ScrollBoxRenderable } from "@opentui/core"
 import { useApp } from "../hooks/useApp.ts"
+import { useResponsive } from "../hooks/useViewport.ts"
 import { ChatMessage } from "./ChatMessage.tsx"
 import { Spinner } from "./Spinner.tsx"
-import type { AgentState } from "../../core/agent/types.ts"
+import { ChatInput } from "./ChatInput.tsx"
+import type { AgentState } from "../../types/agent"
+import { shortCwd } from "../../utils/path.ts"
 import pkg from "../../../package.json"
+import type { Command } from "../../types/commands"
+import { CommandPreview } from "./CommandPreview.tsx"
 
-const ICON_YUE = "\uF186"
 const DOT = "\u00B7"
 
 const YUE_LOGO_RAW = [
@@ -18,15 +24,16 @@ const YUE_LOGO_RAW = [
 const LOGO_WIDTH = Math.max(...YUE_LOGO_RAW.map((l) => l.length))
 const YUE_LOGO = YUE_LOGO_RAW.map((l) => l.padEnd(LOGO_WIDTH))
 
-const ICON_PROMPT = "\uF105" // nf-fa-angle_right
 
-function shortCwd(): string {
-  const cwd = process.cwd()
-  const home = process.env.HOME ?? ""
-  if (home && cwd.startsWith(home)) {
-    return "~" + cwd.slice(home.length)
-  }
-  return cwd
+function logoGradient(theme: any): string[] {
+  // Use theme tokens so presets/overrides apply consistently.
+  return [
+    String(theme.secondary),
+    String(theme.secondary),
+    String(theme.accent),
+    String(theme.accentDim),
+    String(theme.accentDim),
+  ]
 }
 
 export function ChatView(props: {
@@ -34,10 +41,88 @@ export function ChatView(props: {
   agentState: () => AgentState
   inputValue: () => string
   onInput: (v: string) => void
-  inputFocused: boolean
-  isWelcome: boolean
+  onSubmit: () => void
+  inputFocused: () => boolean
+  isWelcome: () => boolean
+  mode: () => "plan" | "build"
+  modelName: () => string
+  commandPreviewOpen: () => boolean
+  commandSuggestions: () => Command[]
+  commandIndex: () => number
+  scrollShortcutsEnabled: () => boolean
 }) {
   const { session, theme } = useApp()
+  const { isCompact, isWide } = useResponsive()
+  const grad = () => logoGradient(theme)
+
+  let feedRef: ScrollBoxRenderable | undefined
+  const [autoFollow, setAutoFollow] = createSignal(true)
+
+
+  const isNearBottom = () => {
+    if (!feedRef) return true
+    // Treat within last 2 rows as "at bottom".
+    return feedRef.scrollTop + feedRef.height >= feedRef.scrollHeight - 2
+  }
+
+  const scrollToBottom = () => {
+    if (!feedRef) return
+    // Clamp inside scrollbox; large value is fine.
+    feedRef.scrollTop = Number.MAX_SAFE_INTEGER
+  }
+
+  const scrollByRows = (rows: number) => {
+    if (!feedRef) return
+    feedRef.scrollBy({ x: 0, y: rows })
+  }
+
+  const pageSize = () => {
+    if (!feedRef) return 10
+    return Math.max(3, feedRef.height - 2)
+  }
+
+  // Auto-follow new content while user is at the bottom.
+  // We intentionally do NOT depend on streamingText() here to avoid
+  // forcing scroll work on every streamed token.
+  createEffect(() => {
+    if (props.isWelcome()) return
+    session().messages.length
+    props.agentState()
+    if (!autoFollow()) return
+    queueMicrotask(() => {
+      if (!autoFollow()) return
+      scrollToBottom()
+    })
+  })
+
+  useKeyboard((key) => {
+    if (!props.scrollShortcutsEnabled()) return
+    if (props.isWelcome()) return
+    if (!feedRef) return
+
+    if (key.name === "pageup") {
+      setAutoFollow(false)
+      scrollByRows(-pageSize())
+      return
+    }
+
+    if (key.name === "pagedown") {
+      scrollByRows(pageSize())
+      if (isNearBottom()) setAutoFollow(true)
+      return
+    }
+
+    if (key.name === "home") {
+      setAutoFollow(false)
+      if (feedRef) feedRef.scrollTop = 0
+      return
+    }
+
+    if (key.name === "end") {
+      setAutoFollow(true)
+      scrollToBottom()
+    }
+  })
 
   const stateLabel = (): string => {
     switch (props.agentState()) {
@@ -56,7 +141,7 @@ export function ChatView(props: {
 
   return (
     <>
-      <Show when={props.isWelcome}>
+      <Show when={props.isWelcome()}>
         <box flexDirection="column" flexGrow={1}>
           {/* Centering container */}
           <box
@@ -65,54 +150,41 @@ export function ChatView(props: {
             justifyContent="center"
             flexGrow={1}
           >
-            <box flexDirection="column" alignItems="center" width="60%">
+            <box flexDirection="column" alignItems="center" width={isCompact() ? "90%" : isWide() ? "50%" : "65%"}>
               {/* Logo */}
-              {YUE_LOGO.map((line) => (
-                <text fg={theme.accent}>{line}</text>
+              {YUE_LOGO.map((line, i) => (
+                <text fg={grad()[i] ?? theme.accent}>{line}</text>
               ))}
 
-              {/* Textarea with border */}
-              <box
-                flexDirection="row"
-                width="100%"
-                paddingTop={2}
-              >
-                <box
-                  flexDirection="row"
-                  alignItems="flex-start"
-                  flexGrow={1}
-                  border={true}
-                  borderStyle="rounded"
-                  borderColor={theme.border}
-                  focusedBorderColor={theme.accentDim}
-                  focused={props.inputFocused}
-                  paddingLeft={1}
-                  paddingRight={1}
-                >
-                  <text fg={props.inputFocused ? theme.accent : theme.muted}>{ICON_PROMPT} </text>
-                  <textarea
-                    value={props.inputValue()}
-                    onInput={props.onInput}
-                    placeholder="Message Yue..."
-                    focused={props.inputFocused}
-                    flexGrow={1}
-                    height={5}
-                    wrapText
-                    backgroundColor={theme.bg}
-                    textColor={theme.fg}
-                    placeholderColor={theme.muted}
-                  />
-                </box>
-              </box>
+              {/* Input with border */}
+              <box width="100%" paddingTop={2} flexDirection="column" gap={1} zIndex={10}>
+                 <ChatInput
+                   value={props.inputValue}
+                   onInput={props.onInput}
+                   onSubmit={props.onSubmit}
+                   mode={props.mode()}
+                   modelName={props.modelName()}
+                   focused={props.inputFocused()}
+                   commandPreview={
+                     <CommandPreview
+                       open={props.commandPreviewOpen}
+                       commands={props.commandSuggestions}
+                       selectedIndex={props.commandIndex}
+                     />
+                   }
+                 />
+               </box>
 
-              {/* Hints */}
-              <box flexDirection="row" marginTop={1}>
-                <text fg={theme.secondary}>Enter</text>
-                <text fg={theme.muted}> send</text>
-                <text fg={theme.border}>{"  "}{DOT}{"  "}</text>
-                <text fg={theme.secondary}>Ctrl+C</text>
-                <text fg={theme.muted}> exit</text>
-              </box>
+              {/* Hints - hidden in compact mode */}
+              <Show when={!isCompact()}>
+                <box flexDirection="row" marginTop={1}>
+                  <text fg={theme.secondary}>Enter</text>
+                  <text fg={theme.muted}> send</text>
+                  <text fg={theme.border}>{"  "}{DOT}{"  "}</text>
+                  <text fg={theme.secondary}>Ctrl+C</text>
+                  <text fg={theme.muted}> exit</text>
+                </box>
+              </Show>
 
               {/* Tagline */}
               <box marginTop={1}>
@@ -136,38 +208,39 @@ export function ChatView(props: {
         </box>
       </Show>
 
-      <Show when={!props.isWelcome}>
-        <scrollbox flexGrow={1} focused={false}>
-          <box flexDirection="column" paddingTop={1}>
-            <For each={session().messages}>
-              {(msg) => <ChatMessage message={msg} />}
-            </For>
+      <Show when={!props.isWelcome()}>
+        <scrollbox
+          id="chat-feed"
+          flexDirection="column"
+          flexGrow={1}
+          stickyScroll={true}
+          stickyStart="bottom"
+          viewportCulling={true}
+          scrollbarOptions={{ visible: false }}
+          ref={(el) => {
+            feedRef = el
+          }}
+          onMouseScroll={(event) => {
+            const info = event.scroll
+            if (!info) return
+            if (info.direction !== "up" && info.direction !== "down") return
+            setAutoFollow(false)
+            const delta = info.direction === "up" ? -info.delta : info.delta
+            scrollByRows(delta)
+            if (isNearBottom()) setAutoFollow(true)
+          }}
+        >
+          <For each={session().messages}>
+            {(msg) => <ChatMessage message={msg} />}
+          </For>
 
-            <Show when={props.streamingText()}>
-              <box
-                flexDirection="column"
-                paddingLeft={2}
-                paddingRight={2}
-                paddingTop={1}
-                paddingBottom={1}
-                marginLeft={1}
-                marginRight={1}
-                marginBottom={1}
-                backgroundColor={theme.surface}
-              >
-                <text fg={theme.accent}>
-                  <strong>{ICON_YUE} Yue</strong>
-                </text>
-                <box paddingLeft={3} paddingTop={1}>
-                  <text selectable>{props.streamingText()}</text>
-                </box>
-              </box>
-            </Show>
 
-            <Show when={props.agentState() !== "idle"}>
+
+          <Show when={props.agentState() !== "idle"}>
+            <box id="chat-spinner">
               <Spinner label={stateLabel()} />
-            </Show>
-          </box>
+            </box>
+          </Show>
         </scrollbox>
       </Show>
     </>

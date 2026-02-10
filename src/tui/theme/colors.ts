@@ -1,6 +1,6 @@
 import { RGBA } from "@opentui/core"
 import { getPreset, type ThemeColors } from "./presets.ts"
-import type { YueConfig } from "../../core/config/schema.ts"
+import type { YueConfig } from "../../types/config"
 
 export type ResolvedTheme = Record<keyof ThemeColors, string | RGBA>
 

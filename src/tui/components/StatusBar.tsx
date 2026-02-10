@@ -1,18 +1,10 @@
 import { useApp } from "../hooks/useApp.ts"
+import { shortCwd } from "../../utils/path.ts"
 
 const ICON_MOON = "\uF186"
 const ICON_FOLDER = "\uF07B"
 const ICON_TOKENS = "\uF2DB"
 const SEP = " \u2502 "
-
-function shortCwd(): string {
-  const cwd = process.cwd()
-  const home = process.env.HOME ?? ""
-  if (home && cwd.startsWith(home)) {
-    return "~" + cwd.slice(home.length)
-  }
-  return cwd
-}
 
 function formatTokens(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`

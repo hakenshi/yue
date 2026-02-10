@@ -26,8 +26,11 @@ export function PermissionPrompt(props: {
   return (
     <box
       flexDirection="column"
+      border={true}
       borderStyle="rounded"
       borderColor={theme.warning}
+      focusedBorderColor={theme.accent}
+      focused={true}
       backgroundColor={theme.surface}
       padding={1}
       marginLeft={2}
