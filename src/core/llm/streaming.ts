@@ -1,5 +1,6 @@
 import { streamText, type ModelMessage } from "ai"
-import type { TokenUsage } from "./types.ts"
+import type { AnyModel } from "./provider.ts"
+import type { TokenUsage } from "../../types/llm"
 
 export interface StreamCallbacks {
   onTextDelta: (delta: string) => void
@@ -9,7 +10,7 @@ export interface StreamCallbacks {
 }
 
 export async function streamResponse(
-  model: unknown,
+  model: AnyModel,
   messages: ModelMessage[],
   systemPrompt: string,
   tools: Record<string, unknown>,
@@ -17,6 +18,8 @@ export async function streamResponse(
   callbacks: StreamCallbacks,
 ) {
   try {
+    // model may be LanguageModelV1 from older provider SDKs;
+    // streamText handles the v1→v3 conversion internally
     const result = streamText({
       model: model as any,
       system: systemPrompt,
@@ -26,20 +29,16 @@ export async function streamResponse(
     })
 
     for await (const part of result.fullStream) {
-      switch (part.type) {
-        case "text-delta":
-          callbacks.onTextDelta((part as any).text ?? (part as any).textDelta ?? "")
-          break
-        case "tool-call":
-          callbacks.onToolCall({
-            id: (part as any).toolCallId,
-            name: (part as any).toolName,
-            input: (part as any).input ?? (part as any).args ?? {},
-          })
-          break
-        case "error":
-          callbacks.onError((part as any).error instanceof Error ? (part as any).error : new Error(String((part as any).error)))
-          break
+      if (part.type === "text-delta") {
+        callbacks.onTextDelta(part.text)
+      } else if (part.type === "tool-call") {
+        callbacks.onToolCall({
+          id: part.toolCallId,
+          name: part.toolName,
+          input: (part.input ?? {}) as Record<string, unknown>,
+        })
+      } else if (part.type === "error") {
+        callbacks.onError(part.error instanceof Error ? part.error : new Error(String(part.error)))
       }
     }
 
@@ -49,8 +48,8 @@ export async function streamResponse(
     callbacks.onFinish({
       text,
       usage: {
-        inputTokens: (usage as any).inputTokens ?? (usage as any).promptTokens,
-        outputTokens: (usage as any).outputTokens ?? (usage as any).completionTokens,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
       },
     })
   } catch (error) {

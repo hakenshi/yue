@@ -1,34 +1,12 @@
-import type { YueConfig } from "../config/schema.ts"
+import type { YueConfig } from "../../types/config"
+import type { PermissionStatus } from "../../types/permission"
 
-export type PermissionStatus = "approved" | "denied" | "pending"
+export class PermissionChecker {
+  constructor(private config: YueConfig) {}
 
-type PermissionCallback = (
-  toolName: string,
-  args: Record<string, unknown>,
-) => Promise<PermissionStatus>
-
-let permissionHandler: PermissionCallback | null = null
-
-export function setPermissionHandler(handler: PermissionCallback) {
-  permissionHandler = handler
-}
-
-export async function checkPermission(
-  config: YueConfig,
-  toolName: string,
-  args: Record<string, unknown>,
-): Promise<PermissionStatus> {
-  if (config.permissions.autoApprove.includes(toolName)) {
-    return "approved"
+  check(toolName: string): PermissionStatus {
+    if (this.config.permissions.autoApprove.includes(toolName)) return "approved"
+    if (this.config.permissions.autoApprove.includes("*")) return "approved"
+    return "pending"
   }
-
-  if (config.permissions.autoApprove.includes("*")) {
-    return "approved"
-  }
-
-  if (permissionHandler) {
-    return permissionHandler(toolName, args)
-  }
-
-  return "pending"
 }

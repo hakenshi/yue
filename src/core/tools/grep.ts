@@ -1,4 +1,4 @@
-import type { Tool } from "./types.ts"
+import type { Tool } from "../../types/tools"
 
 export const grepTool: Tool = {
   definition: {

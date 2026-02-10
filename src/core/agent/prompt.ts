@@ -1,4 +1,4 @@
-import type { Personality } from "../personality/types.ts"
+import type { Personality } from "../../types/personality"
 
 export function buildSystemPrompt(personality: Personality): string {
   return `# YUE — AI Coding Agent
@@ -33,6 +33,5 @@ You are Yue, a skilled coding agent that lives in the terminal. You help develop
 ## PERSONALITY: ${personality.name}
 
 ${personality.traits}
-${personality.systemPromptAddition ?? ""}
 `
 }

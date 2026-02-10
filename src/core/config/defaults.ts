@@ -1,4 +1,4 @@
-import type { YueConfig } from "./schema.ts"
+import type { YueConfig } from "../../types/config"
 
 export const DEFAULT_CONFIG: YueConfig = {
   provider: "google",
@@ -6,13 +6,10 @@ export const DEFAULT_CONFIG: YueConfig = {
   apiKeys: {},
   personality: "yue",
   maxTokens: 8192,
-  contextMaxPercent: 75,
   permissions: {
     autoApprove: [],
     alwaysAsk: ["bash", "write", "edit"],
   },
-  tddMode: false,
-  gitStrategy: "feature-branch",
   logLevel: "info",
   theme: {
     preset: "yue",

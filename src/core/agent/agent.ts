@@ -1,30 +1,31 @@
 import type { ModelMessage } from "ai"
-import type { YueConfig } from "../config/schema.ts"
-import type { Message, TokenUsage } from "../llm/types.ts"
-import type { AgentState } from "./types.ts"
+import type { YueConfig } from "../../types/config"
+import type { Message, TokenUsage } from "../../types/llm"
+import type { AgentState } from "../../types/agent"
+import type { LLMProvider } from "../llm/provider.ts"
+import type { ToolRegistry } from "../tools/registry.ts"
+import type { PermissionChecker } from "../permission/permission.ts"
 import { buildSystemPrompt } from "./prompt.ts"
 import { getPersonality } from "../personality/personalities.ts"
 import { streamResponse, type StreamCallbacks } from "../llm/streaming.ts"
-import { toAISDKTools, getTool } from "../tools/registry.ts"
-import { checkPermission } from "../permission/permission.ts"
 import { generateId } from "../../utils/id.ts"
-import { bus } from "../events.ts"
-import { createLogger } from "../../utils/logger.ts"
+import { readAgentsRules } from "../project/agents.ts"
+import { formatOpinionsForPrompt, readOpinions } from "../project/opinions.ts"
 
-const log = createLogger("agent")
 const MAX_TOOL_ROUNDS = 10
 
 export class Agent {
   private config: YueConfig
-  private model: unknown
-  private systemPrompt: string
+  private provider: LLMProvider
+  private tools: ToolRegistry
+  private permissions: PermissionChecker
   private _state: AgentState = "idle"
 
-  constructor(config: YueConfig, model: unknown) {
+  constructor(config: YueConfig, provider: LLMProvider, tools: ToolRegistry, permissions: PermissionChecker) {
     this.config = config
-    this.model = model
-    const personality = getPersonality(config.personality)
-    this.systemPrompt = buildSystemPrompt(personality)
+    this.provider = provider
+    this.tools = tools
+    this.permissions = permissions
   }
 
   get state(): AgentState {
@@ -33,7 +34,38 @@ export class Agent {
 
   private setState(state: AgentState) {
     this._state = state
-    bus.emit("agent:state", state)
+  }
+
+  private buildPrompt(): string {
+    const base = buildSystemPrompt(getPersonality(this.config.personality))
+
+    const blocks: string[] = [base]
+
+    const opinions = readOpinions()
+    if (opinions && opinions.rules.length > 0) {
+      blocks.push(
+        [
+          "## GLOBAL OPINIONS (~/.config/yue/opinions.yml)",
+          "",
+          formatOpinionsForPrompt(opinions),
+          "",
+        ].join("\n"),
+      )
+    }
+
+    const agents = readAgentsRules().trim()
+    if (agents) {
+      blocks.push(
+        [
+          "## PROJECT RULES (.yue/agents.md)",
+          "",
+          agents,
+          "",
+        ].join("\n"),
+      )
+    }
+
+    return blocks.join("\n")
   }
 
   async run(
@@ -49,9 +81,14 @@ export class Agent {
   ) {
     this.setState("thinking")
 
-    const coreMessages: ModelMessage[] = messages.map((m): ModelMessage => {
+    const model = this.provider.createModel(this.config.model)
+    const systemPrompt = this.buildPrompt()
+
+    const coreMessages: ModelMessage[] = messages.flatMap((m): ModelMessage[] => {
+      // Never feed UI/system messages into the model context.
+      if (m.role === "system") return []
       if (m.role === "tool" && m.toolResults) {
-        return {
+        return [{
           role: "tool" as const,
           content: m.toolResults.map((tr) => ({
             type: "tool-result" as const,
@@ -59,10 +96,10 @@ export class Agent {
             toolName: tr.toolName,
             output: { type: "text" as const, value: String(tr.result ?? "") },
           })),
-        }
+        }]
       }
       if (m.role === "assistant" && m.toolCalls && m.toolCalls.length > 0) {
-        return {
+        return [{
           role: "assistant" as const,
           content: [
             ...(m.content ? [{ type: "text" as const, text: m.content }] : []),
@@ -73,12 +110,12 @@ export class Agent {
               input: tc.input,
             })),
           ],
-        }
+        }]
       }
-      return { role: m.role as "user" | "assistant", content: m.content }
+      return [{ role: m.role as "user" | "assistant", content: m.content }]
     })
 
-    const aiTools = toAISDKTools()
+    const aiTools = this.tools.toAISDKTools()
     let fullText = ""
     let totalUsage: TokenUsage = { inputTokens: 0, outputTokens: 0 }
 
@@ -89,7 +126,6 @@ export class Agent {
 
         const streamCallbacks: StreamCallbacks = {
           onTextDelta(delta) {
-            roundText += delta
             callbacks.onTextDelta(delta)
           },
           onToolCall(tc) {
@@ -99,17 +135,20 @@ export class Agent {
           onFinish(result) {
             totalUsage.inputTokens = (totalUsage.inputTokens ?? 0) + (result.usage.inputTokens ?? 0)
             totalUsage.outputTokens = (totalUsage.outputTokens ?? 0) + (result.usage.outputTokens ?? 0)
+            // Use the SDK-provided full text for this round.
+            // This avoids double-appending when providers emit cumulative/overlapping deltas.
+            roundText = result.text
           },
           onError(error) {
-            log.error("Stream error", error)
+            callbacks.onError(error)
           },
         }
 
-        this.setState(round === 0 ? "streaming" : "streaming")
+        this.setState("streaming")
         await streamResponse(
-          this.model,
+          model,
           coreMessages,
-          this.systemPrompt,
+          systemPrompt,
           aiTools,
           this.config.maxTokens,
           streamCallbacks,
@@ -121,7 +160,6 @@ export class Agent {
           break
         }
 
-        // Add assistant message with tool calls to conversation
         coreMessages.push({
           role: "assistant" as const,
           content: [
@@ -135,12 +173,11 @@ export class Agent {
           ],
         })
 
-        // Execute tools and collect results
         this.setState("tool_calling")
         const toolResults: { toolCallId: string; toolName: string; output: string }[] = []
 
         for (const tc of collectedToolCalls) {
-          const toolDef = getTool(tc.name)
+          const toolDef = this.tools.get(tc.name)
           if (!toolDef) {
             const errMsg = `Error: unknown tool "${tc.name}"`
             callbacks.onToolResult(tc.name, errMsg)
@@ -150,7 +187,7 @@ export class Agent {
 
           if (toolDef.definition.requiresPermission) {
             this.setState("waiting_permission")
-            const permission = await checkPermission(this.config, tc.name, tc.input)
+            const permission = this.permissions.check(tc.name)
             if (permission === "pending") {
               const approved = await callbacks.onPermissionRequest(tc.name, tc.input)
               if (!approved) {
@@ -174,7 +211,6 @@ export class Agent {
           toolResults.push({ toolCallId: tc.id, toolName: tc.name, output })
         }
 
-        // Add tool results to conversation so the LLM can see them
         coreMessages.push({
           role: "tool" as const,
           content: toolResults.map((tr) => ({
@@ -184,9 +220,6 @@ export class Agent {
             output: { type: "text" as const, value: tr.output },
           })),
         })
-
-        // Reset for next round
-        fullText += ""
       }
 
       const assistantMessage: Message = {

@@ -1,4 +1,4 @@
-import type { Tool } from "./types.ts"
+import type { Tool } from "../../types/tools"
 import { existsSync } from "fs"
 
 export const readTool: Tool = {

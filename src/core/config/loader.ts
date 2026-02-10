@@ -1,11 +1,9 @@
 import { readFileSync, existsSync } from "fs"
 import { join } from "path"
 import yaml from "js-yaml"
-import { yueConfigSchema, type YueConfig } from "./schema.ts"
+import { yueConfigSchema } from "./schema.ts"
+import type { YueConfig } from "../../types/config"
 import { DEFAULT_CONFIG } from "./defaults.ts"
-import { createLogger } from "../../utils/logger.ts"
-
-const log = createLogger("config")
 
 const GLOBAL_CONFIG_DIR = join(
   process.env.XDG_CONFIG_HOME || join(process.env.HOME || "~", ".config"),
@@ -19,8 +17,7 @@ function loadYamlFile(path: string): Record<string, unknown> | null {
   try {
     const content = readFileSync(path, "utf-8")
     return (yaml.load(content) as Record<string, unknown>) ?? null
-  } catch (e) {
-    log.warn(`Failed to parse config at ${path}`, e)
+  } catch {
     return null
   }
 }
@@ -57,7 +54,6 @@ export function loadConfig(): YueConfig {
 
   const result = yueConfigSchema.safeParse(merged)
   if (!result.success) {
-    log.warn("Config validation failed, using defaults", result.error.issues)
     return DEFAULT_CONFIG
   }
 

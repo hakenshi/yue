@@ -1,4 +1,4 @@
-import type { Personality } from "./types.ts"
+import type { Personality } from "../../types/personality"
 
 export const PERSONALITIES: Record<string, Personality> = {
   yue: {

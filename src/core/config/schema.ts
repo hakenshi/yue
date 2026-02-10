@@ -6,13 +6,10 @@ export const yueConfigSchema = z.object({
   apiKeys: z.record(z.string(), z.string()).default({}),
   personality: z.string().default("yue"),
   maxTokens: z.number().int().positive().default(8192),
-  contextMaxPercent: z.number().min(1).max(100).default(75),
   permissions: z.object({
     autoApprove: z.array(z.string()).default([]),
     alwaysAsk: z.array(z.string()).default(["bash", "write", "edit"]),
   }).default({}),
-  tddMode: z.boolean().default(false),
-  gitStrategy: z.enum(["feature-branch", "trunk"]).default("feature-branch"),
   logLevel: z.enum(["debug", "info", "warn", "error"]).default("info"),
   theme: z.object({
     preset: z.enum(["yue", "dracula", "nord", "gruvbox", "tokyonight", "catppuccin"]).default("yue"),

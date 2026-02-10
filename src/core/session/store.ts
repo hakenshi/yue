@@ -1,11 +1,13 @@
 import { Database } from "bun:sqlite"
 import { join } from "path"
 import { mkdirSync } from "fs"
-import type { Session } from "./types.ts"
-import type { Message } from "../llm/types.ts"
-import { createLogger } from "../../utils/logger.ts"
+import type { Session } from "../../types/session"
+import type { Message } from "../../types/llm"
 
-const log = createLogger("session-store")
+function safeJsonParse(raw: unknown): unknown {
+  if (!raw || typeof raw !== "string") return undefined
+  try { return JSON.parse(raw) } catch { return undefined }
+}
 
 let db: Database | null = null
 
@@ -42,7 +44,6 @@ function getDb(): Database {
         FOREIGN KEY (session_id) REFERENCES sessions(id)
       )
     `)
-    log.info("Database initialized")
   }
   return db
 }
@@ -66,9 +67,9 @@ export function getSession(id: string): Session | null {
     id: m.id as string,
     role: m.role as Message["role"],
     content: m.content as string,
-    toolCalls: m.tool_calls ? JSON.parse(m.tool_calls as string) : undefined,
-    toolResults: m.tool_results ? JSON.parse(m.tool_results as string) : undefined,
-    usage: m.usage ? JSON.parse(m.usage as string) : undefined,
+    toolCalls: safeJsonParse(m.tool_calls) as Message["toolCalls"],
+    toolResults: safeJsonParse(m.tool_results) as Message["toolResults"],
+    usage: safeJsonParse(m.usage) as Message["usage"],
     createdAt: m.created_at as number,
   }))
 

@@ -1,15 +1,19 @@
 import { createContext, useContext } from "solid-js"
 import type { Agent } from "../../core/agent/agent.ts"
-import type { YueConfig } from "../../core/config/schema.ts"
-import type { Session } from "../../core/session/types.ts"
-import type { ResolvedTheme } from "../theme/colors.ts"
+import type { SessionManager } from "../../core/session/session.ts"
+import type { CommandRegistry } from "../../core/commands/registry.ts"
+import type { YueConfig } from "../../types/config"
+import type { Session } from "../../types/session"
+import type { ResolvedTheme } from "../../types/theme"
 
-export type AppContextValue = {
+export interface AppContextValue {
   agent: Agent
   config: YueConfig
   theme: ResolvedTheme
   session: () => Session
   setSession: (s: Session) => void
+  sessions: SessionManager
+  commands: CommandRegistry
 }
 
 export const AppContext = createContext<AppContextValue>()
