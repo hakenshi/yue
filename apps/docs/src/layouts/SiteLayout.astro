@@ -1,0 +1,62 @@
+---
+type Props = {
+  title: string
+  description?: string
+}
+
+const { title, description } = Astro.props
+
+import { api } from "../lib/api"
+
+// Ensure the typed client is part of the app bundle.
+void api.v1.version.get
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    {description ? <meta name="description" content={description} /> : null}
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/site.css" />
+  </head>
+  <body>
+    <div class="bg">
+      <div class="bg__grid" aria-hidden="true"></div>
+      <div class="bg__glow" aria-hidden="true"></div>
+    </div>
+
+    <header class="header">
+      <div class="container header__inner">
+        <a class="brand" href="/">
+          <span class="brand__mark" aria-hidden="true">Y</span>
+          <span class="brand__name">Yue</span>
+        </a>
+
+        <nav class="nav" aria-label="Primary">
+          <a class="nav__link" href="/docs">Docs</a>
+          <a class="nav__link" href="/marketplace">Marketplace</a>
+          <a class="nav__link" href="/billing">Billing</a>
+          <a class="nav__link" href="/settings">Config</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="main">
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <span class="footer__text">Local-first agent tooling. No telemetry.</span>
+        <span class="footer__text">{new Date().getFullYear()} Yue</span>
+      </div>
+    </footer>
+  </body>
+</html>
