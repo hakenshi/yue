@@ -4,6 +4,7 @@ Status: DRAFT (alignment)
 Audience: agentic coding agents and contributors (not end-users)
 
 IMPORTANT reference rule
+
 - When we say "OpenCode", we mean: https://github.com/anomalyco/opencode
 - Ignore similarly named Go projects; they are unrelated.
 
@@ -60,18 +61,18 @@ IMPORTANT reference rule
 ### 2.2 Target monorepo layout (planned)
 
 - apps/
-  - tui/        # priority
-  - api/        # priority (cloud: billing, Nightly, Lunar waitlist)
-  - landing/    # priority (docs + marketplace page)
-  - server/     # later (local runtime + serve UI)
-  - desktop/    # later
-  - web/        # later (Solid SPA UI, served by apps/server)
+  - tui/ # priority
+  - api/ # priority (cloud: billing, Nightly, Lunar waitlist)
+  - landing/ # priority (docs + marketplace page)
+  - server/ # later (local runtime + serve UI)
+  - desktop/ # later
+  - web/ # later (Solid SPA UI, served by apps/server)
 - packages/
-  - core/       # agent runtime + commands + tool contracts + shared logic
-  - types/      # shared types (commands/tools/session/usage)
-  - policy/     # policy engine + validators runtime (planned)
-  - context/    # context engine (planned)
-  - obs/        # flight recorder + trace model (planned)
+  - core/ # agent runtime + commands + tool contracts + shared logic
+  - types/ # shared types (commands/tools/session/usage)
+  - policy/ # policy engine + validators runtime (planned)
+  - context/ # context engine (planned)
+  - obs/ # flight recorder + trace model (planned)
 
 ### 2.3 Dev commands (conceptual)
 
@@ -167,6 +168,7 @@ exclude:
 - MUST support daily rollups.
 
 Recommended local paths (XDG-friendly):
+
 - `~/.local/share/yue/usage/ledger.jsonl` (events)
 - `~/.local/share/yue/usage/daily/<projectId>/<YYYY-MM-DD>.toon` (rollups)
 - `~/.local/share/yue/usage/index.toon` (projects + metadata snapshot)
@@ -194,6 +196,7 @@ Recommended local paths (XDG-friendly):
   - `sessions/<sessionId>/events.jsonl`
 
 Event types (examples):
+
 - `message.user`
 - `message.assistant`
 - `tool.call`
@@ -214,6 +217,7 @@ Event types (examples):
   - `sessions/<sessionId>/state.toon`
 
 state.toon MUST include:
+
 - current goal/task (if any)
 - canonical summary
 - confirmed decisions/constraints
@@ -270,6 +274,14 @@ state.toon MUST include:
 - ADRs: `./.yue/adrs/*.md`
 - Other docs: `./.yue/docs/*.md`
 - Tracker: `./.yue/tracker.yml`
+
+### 8.3 Skill + MCP boundaries (MUST)
+
+- Skill files are documentation/procedure for agent behavior.
+- Skills MUST NOT be treated as persistence, source of truth, or domain runtime.
+- Backlog source of truth is the running local backlog application/API.
+- MCP is the required communication channel for agent backlog operations.
+- If MCP is unavailable, backlog operations are unavailable by design (no internal fallback backlog engine).
 
 ---
 
@@ -329,6 +341,7 @@ state.toon MUST include:
   - waitlist gating (invited users only)
 
 Waitlist:
+
 - Email collection is allowed as necessary, but MUST be minimal.
 - MUST NOT add tracking pixels or analytics.
 
@@ -352,9 +365,10 @@ Waitlist:
 
 ## 14. Roadmap (Priority Order)
 
-1) TurboRepo migration + keep TUI working
-2) Token tracking per folder/day/provider + totals (TUI)
-3) Cloud API (Railway): Better Auth + Stripe top-up + Nightly metering
-4) Landing/docs + marketplace page (Astro, static, no telemetry)
-5) Governance engine + validators (incremental)
-6) `yue serve` local UI + desktop (Tauri) (last)
+1. API-first baseline: modular architecture + stable `/v1/*` contracts + tests-first foundations
+2. Token tracking per folder/day/provider + totals (TUI)
+3. Cloud API (Railway): Better Auth + Stripe top-up + Nightly metering
+4. Mandatory MCP backlog integration (backlog app source of truth, skill as documentation)
+5. Landing/docs + marketplace page (Astro, static, no telemetry)
+6. Governance engine + validators (incremental)
+7. `yue serve` local UI + desktop (Tauri) (last)

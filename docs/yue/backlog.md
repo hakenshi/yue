@@ -1,0 +1,40 @@
+# Yue Backlog
+
+This backlog tracks the current API architecture and implementation work for Yue.
+
+## Active Scope
+
+- [ ] API-first baseline in `apps/api`: scaffold core modules, lock `/v1/*` contracts, and ship tests-first foundations.
+- [ ] Integrate mandatory MCP backlog workflow (no fallback local backlog engine inside Yue).
+- [ ] Define and enforce boundaries: backlog app/API is source of truth; MCP is the agent communication channel; skill is documentation-only.
+- [x] Consolidate Elysia HTTP surface + business rules in `apps/api` (remove shared `api-contract` runtime dependency).
+- [ ] Finish Elysia module architecture (`index.ts`, `service.ts`, `model.ts`) directly under `apps/api/src/modules`.
+- [ ] Finalize `/v1/*` response shapes directly in `apps/api`.
+- [ ] Implement Better Auth + Stripe integration in `apps/api`.
+- [ ] Implement Nightly PAYG flow (topup, ledger, balance, auto-reload).
+- [ ] Implement Nightly bearer API key system (`yue_<kid>_<secret>`), one-time display on creation.
+- [ ] Implement Nightly gateway endpoint (`POST /nightly/v1/responses`) with bearer auth.
+- [ ] Integrate Drizzle (Bun SQL) schema + migrations for PAYG, providers, and API keys.
+- [ ] Capture and expose provider rate-limit snapshots for connected providers.
+- [ ] Keep BYOK local-first (no BYOK secret storage in cloud API).
+- [ ] Remove obsolete `packages/api-contract` directory after migration is complete.
+
+## Decisions Locked
+
+- Backlog operations are mandatory through MCP integration.
+- Yue does not implement an internal backlog engine as source of truth.
+- Skill files are documentation/procedure for agent behavior, not persistence or domain runtime.
+- Nightly is a first-party provider and monetization path.
+- API keys format is `yue_<kid>_<secret>`.
+- API key plaintext is returned only once at creation.
+- Use factory pattern for provider adapters.
+- Keep PAYG as a single focused service (no extra strategy/factory overhead now).
+- Auto-reload off-session is supported, opt-in, and configurable.
+- Web app package is `@yue/web`.
+- Keep a single AGENTS guide at project root (`AGENTS.md`).
+
+## Deferred
+
+- Plan limits from consumer account products (Codex/Claude plan session caps).
+- BYOK cloud proxy with stored user provider secrets.
+- Lunar launch (can remain feature-flagged until later).
