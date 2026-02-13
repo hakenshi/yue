@@ -1,10 +1,6 @@
-import { edenTreaty } from "@elysiajs/eden"
-import type { ApiApp } from "api-contract"
+import { treaty } from "@elysiajs/eden";
+import type { App } from "@api/app.ts";
 
-export type { ApiApp } from "api-contract"
+const baseUrl = process.env.YUE_API_URL ?? "http://localhost:3000";
 
-export type ApiClient = ReturnType<typeof createApiClient>
-
-export function createApiClient(baseUrl: string) {
-  return edenTreaty<ApiApp>(baseUrl)
-}
+export const api = treaty<App>(baseUrl);

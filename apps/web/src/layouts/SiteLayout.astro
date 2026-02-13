@@ -6,7 +6,7 @@ type Props = {
 
 const { title, description } = Astro.props
 
-import { api } from "../lib/api"
+import { api } from "@packages/treaty"
 
 // Ensure the typed client is part of the app bundle.
 void api.v1.version.get

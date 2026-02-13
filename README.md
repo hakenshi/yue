@@ -52,12 +52,12 @@ You can build a specific package by using a [filter](https://turborepo.dev/docs/
 
 ```
 # With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+turbo build --filter=@yue/web
 
 # Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+npx turbo build --filter=@yue/web
+yarn exec turbo build --filter=@yue/web
+pnpm exec turbo build --filter=@yue/web
 ```
 
 ### Develop

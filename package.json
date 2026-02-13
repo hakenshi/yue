@@ -5,7 +5,7 @@
     "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build",
     "dev": "TURBO_TELEMETRY_DISABLED=1 turbo run dev",
     "lint": "TURBO_TELEMETRY_DISABLED=1 turbo run lint",
-    "test": "TURBO_TELEMETRY_DISABLED=1 turbo run test --filter=api --filter=api-contract --filter=treaty",
+    "test": "TURBO_TELEMETRY_DISABLED=1 turbo run test --filter=api",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "TURBO_TELEMETRY_DISABLED=1 turbo run check-types"
   },
