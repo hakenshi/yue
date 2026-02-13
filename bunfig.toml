@@ -1,0 +1,11 @@
+[test]
+# Allow @tests/ path alias in test command
+preload = ["./tests/setup.ts"]
+
+[run]
+# Support for path aliases
+# @tests/ will resolve to ./tests/
+
+[install]
+# Use exact versions
+exact = true
