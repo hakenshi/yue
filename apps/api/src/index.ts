@@ -1,7 +1,9 @@
-import { api } from "./app"
+import { api } from "./app";
 
-const port = Number(process.env.PORT ?? 3000)
+const port = Number(process.env.PORT ?? 3000);
 
-api.listen(port)
+api.listen(port);
 
-console.log(`api listening on http://localhost:${port}`)
+console.log(`api listening on http://localhost:${port}`);
+
+export type App = typeof api;
