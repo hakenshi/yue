@@ -6,7 +6,8 @@
     "baseUrl": ".",
     "paths": {
       "@packages/*": ["../packages/*"],
-      "@apps/*": ["../apps/*"]
+      "@apps/*": ["../apps/*"],
+      "@api/*": ["../apps/api/src/*"]
     },
     "strict": true,
     "esModuleInterop": true,
@@ -16,6 +17,6 @@
     "allowJs": true,
     "noEmit": true
   },
-  "include": ["**/*"],
+  "include": ["**/*", "../apps/api/src/**/*"],
   "exclude": ["node_modules"]
 }

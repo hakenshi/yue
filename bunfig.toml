@@ -1,6 +1,6 @@
 [test]
 # Allow @tests/ path alias in test command
-preload = ["./tests/setup.ts"]
+preload = ["./tests/apps/api/setup.ts"]
 
 [run]
 # Support for path aliases
@@ -9,3 +9,6 @@ preload = ["./tests/setup.ts"]
 [install]
 # Use exact versions
 exact = true
+
+[alias]
+"@api" = "./apps/api/src"
